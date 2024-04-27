@@ -1,17 +1,21 @@
 package com.martishyn.usersapi.dto.user;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Null;
-import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
+@Builder
 public class UserDto {
     @Null(groups = OnCreate.class)
     @NotNull(groups = OnUpdate.class)
     private Long id;
 
+    @Email
+    private String email;
     @NotBlank(groups = {OnCreate.class, OnUpdate.class})
     private String firstName;
 
@@ -23,12 +27,12 @@ public class UserDto {
     private String address;
     private String phoneNumber;
 
-    public Long getId() {
-        return id;
+    public String getEmail() {
+        return email;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getFirstName() {
@@ -69,6 +73,19 @@ public class UserDto {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserDto userDto = (UserDto) o;
+        return Objects.equals(email, userDto.email) && Objects.equals(firstName, userDto.firstName) && Objects.equals(lastName, userDto.lastName) && Objects.equals(birthDate, userDto.birthDate) && Objects.equals(address, userDto.address) && Objects.equals(phoneNumber, userDto.phoneNumber);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(email, firstName, lastName, birthDate, address, phoneNumber);
     }
 }
 
