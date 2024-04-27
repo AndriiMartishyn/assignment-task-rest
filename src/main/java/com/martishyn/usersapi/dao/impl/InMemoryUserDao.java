@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 
 @Repository
 public class InMemoryUserDao implements UserDao {
@@ -21,5 +22,10 @@ public class InMemoryUserDao implements UserDao {
             entity.setId(sequenceId);
         }
         return userMap.put(sequenceId++, entity);
+    }
+
+    @Override
+    public Optional<User> findById(Long id) {
+        return Optional.ofNullable(userMap.get(id));
     }
 }

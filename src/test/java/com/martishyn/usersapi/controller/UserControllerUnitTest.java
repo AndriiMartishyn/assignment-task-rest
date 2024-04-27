@@ -3,6 +3,7 @@ package com.martishyn.usersapi.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.martishyn.usersapi.domain.User;
 
+import com.martishyn.usersapi.dto.user.CreateUserDto;
 import com.martishyn.usersapi.dto.user.UserDto;
 import com.martishyn.usersapi.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,8 +43,8 @@ public class UserControllerUnitTest {
 
     private User validUser;
     private User invalidUser;
-    private UserDto validUserDto;
-    private UserDto invalidUserDto;
+    private CreateUserDto validUserDto;
+    private CreateUserDto invalidUserDto;
 
     @BeforeEach
     public void setUp() {
@@ -52,7 +53,7 @@ public class UserControllerUnitTest {
                 .lastName("Martishyn")
                 .email("myemail@gmail.com")
                 .birthDate(LocalDate.of(1995, 1, 29)).build();
-        validUserDto = UserDto.builder()
+        validUserDto = CreateUserDto.builder()
                 .firstName("Andrii")
                 .lastName("Martishyn")
                 .birthDate(LocalDate.of(1995, 1, 29))
@@ -62,7 +63,7 @@ public class UserControllerUnitTest {
                 .lastName("")
                 .birthDate(LocalDate.now().plusDays(1))
                 .email("").build();
-        invalidUserDto = UserDto.builder()
+        invalidUserDto = CreateUserDto.builder()
                 .firstName("")
                 .lastName("")
                 .email("")
