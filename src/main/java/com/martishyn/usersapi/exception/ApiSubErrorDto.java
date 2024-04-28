@@ -1,24 +1,14 @@
 package com.martishyn.usersapi.exception;
 
 public class ApiSubErrorDto {
-    private String object;
     private String field;
     private Object rejectedValue;
     private String message;
 
-    public ApiSubErrorDto(String object, String field, Object rejectedValue, String message) {
-        this.object = object;
+    public ApiSubErrorDto(String field, Object rejectedValue, String message) {
         this.field = field;
         this.rejectedValue = rejectedValue;
         this.message = message;
-    }
-
-    public String getObject() {
-        return object;
-    }
-
-    public void setObject(String object) {
-        this.object = object;
     }
 
     public String getField() {

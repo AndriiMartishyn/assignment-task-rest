@@ -20,7 +20,8 @@ public class InMemoryUserDao implements UserDao {
         if (entity.getId() == null) {
             entity.setId(sequenceId);
         }
-        return userMap.put(sequenceId++, entity);
+        userMap.put(sequenceId, entity);
+        return userMap.get(sequenceId++);
     }
 
     @Override
