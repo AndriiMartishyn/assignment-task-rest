@@ -43,10 +43,7 @@ public class UserController {
     @PatchMapping(value = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> updateUserPartially(@RequestBody PatchBodyWrapper patchBodyWrapper,
                                                  @PathVariable Long id) {
-//        ResponseUserDto updatedUser = userService.patchUser(patchBodyWrapper, id);
-        ResponseUserDto updatedUser = userService.patchUser(patchBodyWrapper, id);
-        ResponseEntity.ok().body(updatedUser);
-//        return ResponseEntity.ok(updatedUser);
+        ResponseUserDto updatedUser = userService.patchUser(id, patchBodyWrapper);
         return ResponseEntity.ok().body(updatedUser);
     }
 
@@ -60,7 +57,7 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllByBirthDateRange(@RequestParam LocalDate fromDate,
+    public ResponseEntity<List<ResponseUserDto>> getAllByBirthDateRange(@RequestParam LocalDate fromDate,
                                                              @RequestParam LocalDate toDate) {
         return ResponseEntity.ok(userService.searchByBirthRange(fromDate, toDate));
     }

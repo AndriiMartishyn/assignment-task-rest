@@ -1,7 +1,6 @@
 package com.martishyn.usersapi.dto.user;
 
 import com.martishyn.usersapi.validation.Age;
-import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
 

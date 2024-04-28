@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class DefaultUserService implements UserService {
@@ -57,21 +58,16 @@ public class DefaultUserService implements UserService {
     }
 
     @Override
-    public ResponseUserDto patchUser(Map<String, Object> fields, Long idFromRequest) {
-        if (idFromRequest <= 0 || fields.isEmpty()) {
+    public ResponseUserDto patchUser(Long idFromRequest, PatchBodyWrapper data) {
+        if (idFromRequest <= 0 || data == null) {
             throw new ApiErrorException(HttpStatus.NOT_FOUND, "Wrong provided id or data is empty");
         }
         Optional<User> userFromDb = userDao.findById(idFromRequest);
-        User patchedUser = userFromDb.map(user -> PatchAndValidateEntity(fields, user))
+        User patchedUser = userFromDb.map(user -> PatchAndValidateEntity(data.getPatchBody(), user))
                 .orElseThrow(() -> new ApiErrorException(HttpStatus.NOT_FOUND, "No such user found with id " + idFromRequest));
 
         User savedUser = userDao.save(patchedUser);
         return mapUserToResponseDto(savedUser);
-    }
-
-    @Override
-    public ResponseUserDto patchUser(PatchBodyWrapper patchBodyWrapper, Long id) {
-        return null;
     }
 
     @Override
@@ -82,11 +78,14 @@ public class DefaultUserService implements UserService {
     }
 
     @Override
-    public List<User> searchByBirthRange(LocalDate fromDate, LocalDate toDate) {
+    public List<ResponseUserDto> searchByBirthRange(LocalDate fromDate, LocalDate toDate) {
         if (fromDate.isAfter(toDate)){
             throw new ApiErrorException(HttpStatus.BAD_REQUEST, "Date range is incorrect");
         }
-        return userDao.getAllByDateRange(fromDate, toDate);
+        List<User> allByDateRange = userDao.getAllByDateRange(fromDate, toDate);
+        return allByDateRange.stream()
+                .map(this::mapUserToResponseDto)
+                .collect(Collectors.toList());
     }
 
     private User PatchAndValidateEntity(Map<String, Object> fields, User user) {

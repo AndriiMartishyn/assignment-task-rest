@@ -13,12 +13,9 @@ public interface UserService {
 
     ResponseUserDto updateUser(Long idFromRequest, UserDto userDto);
 
-    ResponseUserDto patchUser(Map<String, Object> fields, Long id);
-
-    ResponseUserDto patchUser(PatchBodyWrapper patchBodyWrapper, Long id);
-
+    ResponseUserDto patchUser(Long id, PatchBodyWrapper patchBodyWrapper);
 
     boolean deleteUser(Long id);
 
-    List<User> searchByBirthRange(LocalDate fromDate, LocalDate toDate);
+    List<ResponseUserDto> searchByBirthRange(LocalDate fromDate, LocalDate toDate);
 }

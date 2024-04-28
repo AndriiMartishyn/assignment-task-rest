@@ -1,6 +1,7 @@
 package com.martishyn.usersapi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.martishyn.usersapi.dto.user.PatchBodyWrapper;
 import com.martishyn.usersapi.dto.user.UserDto;
 import com.martishyn.usersapi.exception.ApiErrorException;
 import com.martishyn.usersapi.service.UserService;
@@ -36,8 +37,8 @@ public class UserControllerApiExceptionResponseTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    UserDto validUpdateDto = new UserDto(11L, "test@gmail.com", "Andrii", "Mart", LocalDate.of(1997, 1, 1), "", "");
-    private final Map<String, Object> emptyPartialUpdateBody = new HashMap<>();
+    private final UserDto validUpdateDto = new UserDto(11L, "test@gmail.com", "Andrii", "Mart", LocalDate.of(1997, 1, 1), "", "");
+    private final PatchBodyWrapper patchBodyWrapper = new PatchBodyWrapper();
 
     @Test
     public void shouldReturnBadResponseWhenUpdate_WithNotFoundUser() throws Exception {
@@ -70,11 +71,11 @@ public class UserControllerApiExceptionResponseTest {
     @Test
     public void shouldReturnBadResponseWhenUpdatePartially_WithNotFoundUser() throws Exception {
         long requestId = 0;
-        when(userService.patchUser(emptyPartialUpdateBody, requestId)).thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND,
+        when(userService.patchUser(requestId, patchBodyWrapper)).thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND,
                 "Wrong provided id or data is empty"));
         this.mockMvc.perform(patch(RESOURCE_ENDPOINT + "/{id}", requestId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(emptyPartialUpdateBody)))
+                        .content(objectMapper.writeValueAsString(patchBodyWrapper)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value(containsString("Wrong provided id or data is empty")));
     }
@@ -82,14 +83,14 @@ public class UserControllerApiExceptionResponseTest {
     @Test
     public void shouldReturnBadResponseWhenUpdatePartially_WithDifferentId() throws Exception {
         long requestId = 0;
-        when(userService.patchUser(emptyPartialUpdateBody, requestId)).thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND,
+        when(userService.patchUser(requestId, patchBodyWrapper)).thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND,
                 "Wrong provided id or data is empty"));
         this.mockMvc.perform(patch(RESOURCE_ENDPOINT + "/{id}", requestId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(emptyPartialUpdateBody)))
+                        .content(objectMapper.writeValueAsString(patchBodyWrapper)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value(containsString("Wrong provided id or data is empty")));
 
-        verify(userService, times(1)).patchUser(emptyPartialUpdateBody, requestId);
+        verify(userService, times(1)).patchUser(requestId, patchBodyWrapper);
     }
 }

@@ -113,7 +113,7 @@ public class UserControllerUnitTest {
     public void shouldReturnOKWhenPartialUpdate_WithValidInput() throws Exception {
         Long requestId = 5L;
         patchBodyWrapper.addPatchBody("id", 5);
-        when(userService.patchUser(patchBodyWrapper, requestId)).thenReturn(responseDto);
+        when(userService.patchUser(requestId, patchBodyWrapper)).thenReturn(responseDto);
         this.mockMvc.perform(patch(RESOURCE_ENDPOINT + "/{id}", requestId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(patchBodyWrapper)))
@@ -126,7 +126,7 @@ public class UserControllerUnitTest {
                 .andExpect(jsonPath("$.address").value(containsString("zelena")))
                 .andExpect(jsonPath("$.phoneNumber").value(containsString("991199")));
 
-        verify(userService, times(1)).patchUser(patchBodyWrapper, requestId);
+        verify(userService, times(1)).patchUser(requestId, patchBodyWrapper);
     }
 
 
