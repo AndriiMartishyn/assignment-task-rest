@@ -12,22 +12,15 @@ import java.time.LocalDate;
 @Builder
 @Getter
 @Setter
-@AllArgsConstructor
 @EqualsAndHashCode
-public class UpdateUserDto{
-    @NotNull
+@AllArgsConstructor
+public class ResponseUserDto {
     private Long id;
-    @Email
     private String email;
-    @NotBlank
     private String firstName;
-
-    @NotBlank
     private String lastName;
-    @Past
-    @Age
-    @NotNull
     private LocalDate birthDate;
     private String address;
     private String phoneNumber;
+
 }

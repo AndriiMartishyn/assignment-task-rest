@@ -1,13 +1,12 @@
 package com.martishyn.usersapi.dao.impl;
 
-import com.martishyn.usersapi.dao.GenericDao;
 import com.martishyn.usersapi.dao.UserDao;
 import com.martishyn.usersapi.domain.User;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -18,7 +17,7 @@ public class InMemoryUserDao implements UserDao {
 
     @Override
     public User save(User entity) {
-        if (entity.getId() == null){
+        if (entity.getId() == null) {
             entity.setId(sequenceId);
         }
         return userMap.put(sequenceId++, entity);
@@ -27,5 +26,18 @@ public class InMemoryUserDao implements UserDao {
     @Override
     public Optional<User> findById(Long id) {
         return Optional.ofNullable(userMap.get(id));
+    }
+
+    @Override
+    public boolean remove(User user) {
+        return userMap.remove(user.getId()) != null;
+    }
+
+    @Override
+    public List<User> getAllByDateRange(LocalDate fromDate, LocalDate toDate) {
+        return userMap.values()
+                .stream()
+                .filter(user -> user.getBirthDate().isAfter(fromDate) && user.getBirthDate().isBefore(toDate))
+                .toList();
     }
 }
