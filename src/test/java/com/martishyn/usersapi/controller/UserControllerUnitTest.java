@@ -2,10 +2,7 @@ package com.martishyn.usersapi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.martishyn.usersapi.domain.User;
-import com.martishyn.usersapi.dto.user.CreateUserDto;
-import com.martishyn.usersapi.dto.user.PatchBodyWrapper;
-import com.martishyn.usersapi.dto.user.ResponseUserDto;
-import com.martishyn.usersapi.dto.user.UpdateUserDto;
+import com.martishyn.usersapi.dto.user.*;
 import com.martishyn.usersapi.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -43,10 +40,10 @@ public class UserControllerUnitTest {
 
     private final User validUser = new User(11L, "Andrii", "Martishyn", "myemail@gmail.com", LocalDate.of(1995, 1, 29), "zelena", "991199");
     private final User invalidUser = new User(null, "", "", "q11", LocalDate.now().plusDays(1), "", "");
-    private final CreateUserDto validCreateDto = new CreateUserDto("test@gmail.com", "andrii", "martishyn", LocalDate.of(1995, 1, 29), "", "");
-    private final CreateUserDto invalidCreateDto = new CreateUserDto("", "", "", LocalDate.now().plusDays(1), "", "");
-    private final UpdateUserDto validUpdateDto = new UpdateUserDto(11L, "test@gmail.com", "Andrii", "Mart", LocalDate.of(1997, 1, 1), "", "");
-    private final UpdateUserDto invalidUpdateDto = new UpdateUserDto(null, "123311", "", "", LocalDate.of(1997, 1, 1), "", "");
+    private final UserDto validCreateDto = new UserDto("test@gmail.com", "andrii", "martishyn", LocalDate.of(1995, 1, 29), "", "");
+    private final UserDto invalidCreateDto = new UserDto("", "", "", LocalDate.now().plusDays(1), "", "");
+    private final UserDto validUpdateDto = new UserDto(11L, "test@gmail.com", "Andrii", "Mart", LocalDate.of(1997, 1, 1), "", "");
+    private final UserDto invalidUpdateDto = new UserDto(null, "123311", "", "", LocalDate.of(1997, 1, 1), "", "");
     private final ResponseUserDto responseDto = new ResponseUserDto(11L, "myemail@gmail.com", "Andrii", "Martishyn", LocalDate.of(1995, 1, 29), "zelena", "991199");
     private final Map<String, Object> patchRequest = new HashMap<>();
     private final PatchBodyWrapper patchBodyWrapper = new PatchBodyWrapper();
@@ -59,7 +56,7 @@ public class UserControllerUnitTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", containsString("/users/11")));
 
-        ArgumentCaptor<CreateUserDto> userCaptor = ArgumentCaptor.forClass(CreateUserDto.class);
+        ArgumentCaptor<UserDto> userCaptor = ArgumentCaptor.forClass(UserDto.class);
         verify(userService, times(1)).createNewUser(userCaptor.capture());
         assertThat(userCaptor.getValue().getFirstName()).isEqualTo("andrii");
         assertThat(userCaptor.getValue().getLastName()).isEqualTo("martishyn");
@@ -76,14 +73,14 @@ public class UserControllerUnitTest {
                 .andExpect(jsonPath("$.message").value(containsString("Validation Error")))
                 .andExpect(jsonPath("$.subErrors.length()").value(4));
 
-        ArgumentCaptor<CreateUserDto> userCaptor = ArgumentCaptor.forClass(CreateUserDto.class);
+        ArgumentCaptor<UserDto> userCaptor = ArgumentCaptor.forClass(UserDto.class);
         verify(userService, never()).createNewUser(userCaptor.capture());
     }
 
     @Test
     public void shouldReturnOKWhenUpdate_WithValidInput() throws Exception {
         ResponseUserDto responseUser = ResponseUserDto.builder().id(12L).firstName("updatedFN").lastName("updatedLN").build();
-        when(userService.updateUser(validUpdateDto, 5L)).thenReturn(responseUser);
+        when(userService.updateUser(5L, validUpdateDto)).thenReturn(responseUser);
         this.mockMvc.perform(put(RESOURCE_ENDPOINT + "/{id}", 5L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validUpdateDto)))
@@ -92,8 +89,8 @@ public class UserControllerUnitTest {
                 .andExpect(jsonPath("$.firstName").value(containsString("updatedFN")))
                 .andExpect(jsonPath("$.lastName").value(containsString("updatedLN")));
 
-        ArgumentCaptor<UpdateUserDto> userCaptor = ArgumentCaptor.forClass(UpdateUserDto.class);
-        verify(userService, times(1)).updateUser(userCaptor.capture(), eq(5L));
+        ArgumentCaptor<UserDto> userCaptor = ArgumentCaptor.forClass(UserDto.class);
+        verify(userService, times(1)).updateUser(eq(5L), userCaptor.capture());
         assertThat(userCaptor.getValue().getId()).isEqualTo(11);
         assertThat(userCaptor.getValue().getFirstName()).isEqualTo("Andrii");
         assertThat(userCaptor.getValue().getLastName()).isEqualTo("Mart");
@@ -108,8 +105,8 @@ public class UserControllerUnitTest {
                 .andExpect(jsonPath("$.message").value(containsString("Validation Error")))
                 .andExpect(jsonPath("$.subErrors.length()").value(4));
 
-        ArgumentCaptor<UpdateUserDto> userCaptor = ArgumentCaptor.forClass(UpdateUserDto.class);
-        verify(userService, never()).updateUser(userCaptor.capture(), eq(5L));
+        ArgumentCaptor<UserDto> userCaptor = ArgumentCaptor.forClass(UserDto.class);
+        verify(userService, never()).updateUser(eq(5L), userCaptor.capture());
     }
 
     @Test

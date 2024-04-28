@@ -29,6 +29,9 @@ public class UserDto {
     private String address;
     private String phoneNumber;
 
+    public UserDto() {
+    }
+
     public UserDto(Long id, String email, String firstName, String lastName, LocalDate birthDate, String address, String phoneNumber) {
         this.id = id;
         this.email = email;

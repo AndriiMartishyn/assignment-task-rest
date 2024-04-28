@@ -1,7 +1,7 @@
 package com.martishyn.usersapi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.martishyn.usersapi.dto.user.UpdateUserDto;
+import com.martishyn.usersapi.dto.user.UserDto;
 import com.martishyn.usersapi.exception.ApiErrorException;
 import com.martishyn.usersapi.service.UserService;
 import org.junit.jupiter.api.Test;
@@ -17,9 +17,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -36,13 +36,13 @@ public class UserControllerApiExceptionResponseTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    UpdateUserDto validUpdateDto = new UpdateUserDto(11L, "test@gmail.com", "Andrii", "Mart", LocalDate.of(1997, 1, 1), "", "");
+    UserDto validUpdateDto = new UserDto(11L, "test@gmail.com", "Andrii", "Mart", LocalDate.of(1997, 1, 1), "", "");
     private final Map<String, Object> emptyPartialUpdateBody = new HashMap<>();
 
     @Test
     public void shouldReturnBadResponseWhenUpdate_WithNotFoundUser() throws Exception {
         long requestId = 5L;
-        when(userService.updateUser(validUpdateDto, requestId)).thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND,
+        when(userService.updateUser(requestId, validUpdateDto)).thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND,
                 "No such user found with id " + requestId));
         this.mockMvc.perform(put(RESOURCE_ENDPOINT + "/{id}", requestId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -50,13 +50,13 @@ public class UserControllerApiExceptionResponseTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value(containsString("No such user found with id " + requestId)));
 
-        verify(userService, times(1)).updateUser(validUpdateDto, requestId);
+        verify(userService, times(1)).updateUser(requestId, validUpdateDto);
     }
 
     @Test
     public void shouldReturnBadResponseWhenUpdate_WithDifferentId() throws Exception {
         long requestId = 5L;
-        when(userService.updateUser(validUpdateDto, requestId)).thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND,
+        when(userService.updateUser(requestId, validUpdateDto)).thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND,
                 "Id mismatch between request body and path variable"));
         this.mockMvc.perform(put(RESOURCE_ENDPOINT + "/{id}", requestId)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -64,7 +64,7 @@ public class UserControllerApiExceptionResponseTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value(containsString("Id mismatch between request body and path variable")));
 
-        verify(userService, times(1)).updateUser(validUpdateDto, requestId);
+        verify(userService, times(1)).updateUser(requestId, validUpdateDto);
     }
 
     @Test

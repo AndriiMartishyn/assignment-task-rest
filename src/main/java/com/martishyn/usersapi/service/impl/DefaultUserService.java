@@ -3,10 +3,7 @@ package com.martishyn.usersapi.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.martishyn.usersapi.dao.UserDao;
 import com.martishyn.usersapi.domain.User;
-import com.martishyn.usersapi.dto.user.CreateUserDto;
-import com.martishyn.usersapi.dto.user.PatchBodyWrapper;
-import com.martishyn.usersapi.dto.user.ResponseUserDto;
-import com.martishyn.usersapi.dto.user.UpdateUserDto;
+import com.martishyn.usersapi.dto.user.*;
 import com.martishyn.usersapi.exception.ApiErrorException;
 import com.martishyn.usersapi.service.UserService;
 import jakarta.validation.ConstraintViolation;
@@ -36,12 +33,12 @@ public class DefaultUserService implements UserService {
     }
 
     @Override
-    public User createNewUser(CreateUserDto userDto) {
+    public User createNewUser(UserDto userDto) {
         return userDao.save(mapToEntity(userDto));
     }
 
     @Override
-    public ResponseUserDto updateUser(UpdateUserDto userDto, Long idFromRequest) {
+    public ResponseUserDto updateUser(Long idFromRequest, UserDto userDto) {
         checkForIdMismatch(userDto, idFromRequest);
         Optional<User> userFromDb = userDao.findById(idFromRequest);
         if (userFromDb.isEmpty()) {
@@ -112,21 +109,10 @@ public class DefaultUserService implements UserService {
     }
 
 
-    private static void checkForIdMismatch(UpdateUserDto userDto, Long idFromRequest) {
+    private static void checkForIdMismatch(UserDto userDto, Long idFromRequest) {
         if (!idFromRequest.equals(userDto.getId())) {
             throw new ApiErrorException(HttpStatus.BAD_REQUEST, "Id mismatch between request body and path variable");
         }
-    }
-
-    private UpdateUserDto mapUserToDto(User savedUser) {
-        return UpdateUserDto.builder()
-                .id(savedUser.getId())
-                .firstName(savedUser.getFirstName())
-                .lastName(savedUser.getLastName())
-                .email(savedUser.getEmail())
-                .birthDate(savedUser.getBirthDate())
-                .address(savedUser.getAddress())
-                .phoneNumber(savedUser.getPhoneNumber()).build();
     }
 
     private ResponseUserDto mapUserToResponseDto(User savedUser) {
@@ -140,7 +126,7 @@ public class DefaultUserService implements UserService {
                 .phoneNumber(savedUser.getPhoneNumber()).build();
     }
 
-    private User mapToEntity(CreateUserDto userDto) {
+    private User mapToEntity(UserDto userDto) {
         return User.builder()
                 .firstName(userDto.getFirstName())
                 .lastName(userDto.getLastName())
