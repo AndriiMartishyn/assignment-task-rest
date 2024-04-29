@@ -1,10 +1,11 @@
-FROM eclipse-temurin:17-jdk-focal
+FROM openjdk:17-oracle
 
 WORKDIR /app
 
 COPY .mvn/ .mvn
 COPY mvnw pom.xml ./
-RUN ./mvnw dependency:go-offline
+RUN sed -i 's/\r$//' mvnw
+RUN /bin/sh mvnw dependency:resolve
 
 COPY src ./src
 
