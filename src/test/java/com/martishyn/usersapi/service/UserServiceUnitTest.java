@@ -2,8 +2,8 @@ package com.martishyn.usersapi.service;
 
 import com.martishyn.usersapi.dao.UserDao;
 import com.martishyn.usersapi.domain.User;
-import com.martishyn.usersapi.dto.user.PatchBodyWrapper;
 import com.martishyn.usersapi.dto.user.ResponseUserDto;
+import com.martishyn.usersapi.dto.user.SingleDataResponseWrapper;
 import com.martishyn.usersapi.dto.user.UserDto;
 import com.martishyn.usersapi.exception.ApiErrorException;
 import com.martishyn.usersapi.service.impl.DefaultUserService;
@@ -25,10 +25,8 @@ public class UserServiceUnitTest {
     private UserDao userDao;
     private UserMapper userMapper;
     private UserService userService;
-
     private User user;
     private UserDto userDto;
-    private UserDto updatedUserDto;
     private ResponseUserDto responseDto;
 
     @BeforeEach
@@ -39,7 +37,6 @@ public class UserServiceUnitTest {
         user = new User(11L, "Andrii", "Martishyn", "test@gmail.com", LocalDate.of(1995, 1, 29), "zelena", "991199");
         userDto = new UserDto("test@gmail.com", "Andrii", "Martishyn", LocalDate.of(1995, 1, 29), "zelena", "991199");
         responseDto = new ResponseUserDto(11L, "test@gmail.com", "Andrii", "Martishyn", LocalDate.of(1995, 1, 29), "zelena", "991199");
-
     }
 
     @Test
@@ -81,15 +78,14 @@ public class UserServiceUnitTest {
 
     @Test
     public void shouldThrowExceptionWhilePatchWhenWrongPatchBody() {
-        assertThrows(ApiErrorException.class, () -> userService.patchUser(-1L, new PatchBodyWrapper()),
+        assertThrows(ApiErrorException.class, () -> userService.patchUser(-1L, userDto),
                 "Wrong provided id or data is empty");
     }
 
     @Test
     public void shouldThrowExceptionWhilePatchWhenNotExistingUser() {
         long id = 2L;
-        when(userDao.findById(id)).thenReturn(Optional.empty());
-        assertThrows(ApiErrorException.class, () -> userService.patchUser(id, new PatchBodyWrapper()),
+        assertThrows(ApiErrorException.class, () -> userService.patchUser(id, null),
                 "No such user found with id " + id);
     }
 
@@ -129,6 +125,4 @@ public class UserServiceUnitTest {
         List<ResponseUserDto> responseUserDtos = userService.searchByBirthRange(fromDate, toDate);
         assertTrue(responseUserDtos.isEmpty());
     }
-
-
 }

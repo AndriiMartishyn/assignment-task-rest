@@ -2,7 +2,6 @@ package com.martishyn.usersapi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.martishyn.usersapi.domain.User;
-import com.martishyn.usersapi.dto.user.PatchBodyWrapper;
 import com.martishyn.usersapi.dto.user.ResponseUserDto;
 import com.martishyn.usersapi.dto.user.UserDto;
 import com.martishyn.usersapi.service.UserService;
@@ -20,10 +19,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
@@ -46,7 +43,7 @@ public class UserControllerUnitTest {
     private final UserDto validUpdateDto = new UserDto(11L, "test@gmail.com", "Andrii", "Mart", LocalDate.of(1997, 1, 1), "", "");
     private final UserDto invalidUpdateDto = new UserDto(null, "123311", "", "", LocalDate.of(1997, 1, 1), "", "");
     private final ResponseUserDto responseDto = new ResponseUserDto(11L, "myemail@gmail.com", "Andrii", "Martishyn", LocalDate.of(1995, 1, 29), "zelena", "991199");
-    private final PatchBodyWrapper patchBodyWrapper = new PatchBodyWrapper();
+    private final UserDto patchUserDto = UserDto.builder().firstName("Andrii").build();
 
     @Test
     public void shouldReturnCreatedWithLocationWhenCreate_WithValidInput() throws Exception {
@@ -71,8 +68,8 @@ public class UserControllerUnitTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidCreateDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.data.message").value(containsString("Validation Error")))
-                .andExpect(jsonPath("$.data.subErrors.length()").value(4));
+                .andExpect(jsonPath("$.message").value(containsString("Validation Error")))
+                .andExpect(jsonPath("$.subErrors.length()").value(5));
 
         ArgumentCaptor<UserDto> userCaptor = ArgumentCaptor.forClass(UserDto.class);
         verify(userService, never()).createNewUser(userCaptor.capture());
@@ -103,8 +100,8 @@ public class UserControllerUnitTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidUpdateDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.data.message").value(containsString("Validation Error")))
-                .andExpect(jsonPath("$.data.subErrors.length()").value(4));
+                .andExpect(jsonPath("$.message").value(containsString("Validation Error")))
+                .andExpect(jsonPath("$.subErrors.length()").value(4));
 
         ArgumentCaptor<UserDto> userCaptor = ArgumentCaptor.forClass(UserDto.class);
         verify(userService, never()).updateUser(eq(5L), userCaptor.capture());
@@ -113,11 +110,10 @@ public class UserControllerUnitTest {
     @Test
     public void shouldReturnOKWhenPartialUpdate_WithValidInput() throws Exception {
         Long requestId = 5L;
-        patchBodyWrapper.addPatchBody("id", 5);
-        when(userService.patchUser(requestId, patchBodyWrapper)).thenReturn(responseDto);
+        when(userService.patchUser(requestId, patchUserDto)).thenReturn(responseDto);
         this.mockMvc.perform(patch(RESOURCE_ENDPOINT + "/{id}", requestId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(patchBodyWrapper)))
+                        .content(objectMapper.writeValueAsString(patchUserDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(11))
                 .andExpect(jsonPath("$.data.firstName").value(containsString("Andrii")))
@@ -127,7 +123,7 @@ public class UserControllerUnitTest {
                 .andExpect(jsonPath("$.data.address").value(containsString("zelena")))
                 .andExpect(jsonPath("$.data.phoneNumber").value(containsString("991199")));
 
-        verify(userService, times(1)).patchUser(requestId, patchBodyWrapper);
+        verify(userService, times(1)).patchUser(requestId, patchUserDto);
     }
 
     @Test
@@ -158,13 +154,14 @@ public class UserControllerUnitTest {
                         .param("toDate", toDate.toString()))
                 .andExpect(status().isOk());
     }
+
     @Test
     public void shouldReturnListWhenFetchingAllUsers() throws Exception {
         LocalDate fromDate = LocalDate.of(2005, 1, 28);
         LocalDate toDate = LocalDate.of(2005, 1, 27);
 
         when(userService.searchByBirthRange(fromDate, toDate)).thenReturn(List.of(responseDto, responseDto,
-        responseDto, responseDto));
+                responseDto, responseDto));
         this.mockMvc.perform(get(RESOURCE_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("fromDate", fromDate.toString())
