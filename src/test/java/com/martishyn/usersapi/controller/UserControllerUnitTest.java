@@ -15,12 +15,15 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
@@ -47,7 +50,7 @@ public class UserControllerUnitTest {
 
     @Test
     public void shouldReturnCreatedWithLocationWhenCreate_WithValidInput() throws Exception {
-        when(userService.createNewUser(any())).thenReturn(responseDto);
+        when(userService.createNewUser(validCreateDto)).thenReturn(responseDto);
         this.mockMvc.perform(post(RESOURCE_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validCreateDto)))
@@ -68,8 +71,8 @@ public class UserControllerUnitTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidCreateDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(containsString("Validation Error")))
-                .andExpect(jsonPath("$.subErrors.length()").value(4));
+                .andExpect(jsonPath("$.data.message").value(containsString("Validation Error")))
+                .andExpect(jsonPath("$.data.subErrors.length()").value(4));
 
         ArgumentCaptor<UserDto> userCaptor = ArgumentCaptor.forClass(UserDto.class);
         verify(userService, never()).createNewUser(userCaptor.capture());
@@ -83,9 +86,9 @@ public class UserControllerUnitTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validUpdateDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(12))
-                .andExpect(jsonPath("$.firstName").value(containsString("updatedFN")))
-                .andExpect(jsonPath("$.lastName").value(containsString("updatedLN")));
+                .andExpect(jsonPath("$.data.id").value(12))
+                .andExpect(jsonPath("$.data.firstName").value(containsString("updatedFN")))
+                .andExpect(jsonPath("$.data.lastName").value(containsString("updatedLN")));
 
         ArgumentCaptor<UserDto> userCaptor = ArgumentCaptor.forClass(UserDto.class);
         verify(userService, times(1)).updateUser(eq(5L), userCaptor.capture());
@@ -100,8 +103,8 @@ public class UserControllerUnitTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidUpdateDto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(containsString("Validation Error")))
-                .andExpect(jsonPath("$.subErrors.length()").value(4));
+                .andExpect(jsonPath("$.data.message").value(containsString("Validation Error")))
+                .andExpect(jsonPath("$.data.subErrors.length()").value(4));
 
         ArgumentCaptor<UserDto> userCaptor = ArgumentCaptor.forClass(UserDto.class);
         verify(userService, never()).updateUser(eq(5L), userCaptor.capture());
@@ -116,17 +119,16 @@ public class UserControllerUnitTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(patchBodyWrapper)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(11))
-                .andExpect(jsonPath("$.firstName").value(containsString("Andrii")))
-                .andExpect(jsonPath("$.lastName").value(containsString("Martishyn")))
-                .andExpect(jsonPath("$.email").value(containsString("myemail@gmail.com")))
-                .andExpect(jsonPath("$.birthDate").value(containsString(LocalDate.of(1995, 1, 29).toString())))
-                .andExpect(jsonPath("$.address").value(containsString("zelena")))
-                .andExpect(jsonPath("$.phoneNumber").value(containsString("991199")));
+                .andExpect(jsonPath("$.data.id").value(11))
+                .andExpect(jsonPath("$.data.firstName").value(containsString("Andrii")))
+                .andExpect(jsonPath("$.data.lastName").value(containsString("Martishyn")))
+                .andExpect(jsonPath("$.data.email").value(containsString("myemail@gmail.com")))
+                .andExpect(jsonPath("$.data.birthDate").value(containsString(LocalDate.of(1995, 1, 29).toString())))
+                .andExpect(jsonPath("$.data.address").value(containsString("zelena")))
+                .andExpect(jsonPath("$.data.phoneNumber").value(containsString("991199")));
 
         verify(userService, times(1)).patchUser(requestId, patchBodyWrapper);
     }
-
 
     @Test
     public void shouldReturnNotFoundResponseWhenEntityNotDeleted() throws Exception {
@@ -143,4 +145,32 @@ public class UserControllerUnitTest {
         this.mockMvc.perform(delete(RESOURCE_ENDPOINT + "/{id}", requestId))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    public void shouldReturnEmptyListWhenUsersNotFound() throws Exception {
+        LocalDate fromDate = LocalDate.of(2005, 1, 28);
+        LocalDate toDate = LocalDate.of(2005, 1, 27);
+
+        when(userService.searchByBirthRange(fromDate, toDate)).thenReturn(Collections.emptyList());
+        this.mockMvc.perform(get(RESOURCE_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("fromDate", fromDate.toString())
+                        .param("toDate", toDate.toString()))
+                .andExpect(status().isOk());
+    }
+    @Test
+    public void shouldReturnListWhenFetchingAllUsers() throws Exception {
+        LocalDate fromDate = LocalDate.of(2005, 1, 28);
+        LocalDate toDate = LocalDate.of(2005, 1, 27);
+
+        when(userService.searchByBirthRange(fromDate, toDate)).thenReturn(List.of(responseDto, responseDto,
+        responseDto, responseDto));
+        this.mockMvc.perform(get(RESOURCE_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("fromDate", fromDate.toString())
+                        .param("toDate", toDate.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(4));
+    }
+
 }

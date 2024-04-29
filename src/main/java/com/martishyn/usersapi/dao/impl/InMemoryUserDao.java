@@ -9,19 +9,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Repository
 public class InMemoryUserDao implements UserDao {
     private final Map<Long, User> userMap = new HashMap<>();
-    private long sequenceId = 1L;
+    private final AtomicLong atomicInteger = new AtomicLong(1L);
 
     @Override
     public User save(User entity) {
         if (entity.getId() == null) {
-            entity.setId(sequenceId);
+            entity.setId(atomicInteger.getAndIncrement());
         }
-        userMap.put(sequenceId, entity);
-        return userMap.get(sequenceId++);
+        userMap.put(entity.getId(), entity);
+        return entity;
     }
 
     @Override

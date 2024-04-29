@@ -2,6 +2,7 @@ package com.martishyn.usersapi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.martishyn.usersapi.dto.user.PatchBodyWrapper;
+import com.martishyn.usersapi.dto.user.ResponseUserDto;
 import com.martishyn.usersapi.dto.user.UserDto;
 import com.martishyn.usersapi.exception.ApiErrorException;
 import com.martishyn.usersapi.service.UserService;
@@ -14,13 +15,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
+import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -49,7 +50,7 @@ public class UserControllerApiExceptionResponseTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validUpdateDto)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value(containsString("No such user found with id " + requestId)));
+                .andExpect(jsonPath("$.data.message").value(containsString("No such user found with id " + requestId)));
 
         verify(userService, times(1)).updateUser(requestId, validUpdateDto);
     }
@@ -63,7 +64,7 @@ public class UserControllerApiExceptionResponseTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validUpdateDto)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value(containsString("Id mismatch between request body and path variable")));
+                .andExpect(jsonPath("$.data.message").value(containsString("Id mismatch between request body and path variable")));
 
         verify(userService, times(1)).updateUser(requestId, validUpdateDto);
     }
@@ -77,7 +78,7 @@ public class UserControllerApiExceptionResponseTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(patchBodyWrapper)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value(containsString("Wrong provided id or data is empty")));
+                .andExpect(jsonPath("$.data.message").value(containsString("Wrong provided id or data is empty")));
     }
 
     @Test
@@ -89,8 +90,23 @@ public class UserControllerApiExceptionResponseTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(patchBodyWrapper)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value(containsString("Wrong provided id or data is empty")));
-
-        verify(userService, times(1)).patchUser(requestId, patchBodyWrapper);
+                .andExpect(jsonPath("$.data.message").value(containsString("Wrong provided id or data is empty")));
     }
+
+    @Test
+    public void shouldReturnBadRequestWhenGetAll_WithInvalidDateRange() throws Exception {
+        LocalDate fromDate = LocalDate.of(2005, 1, 28);
+        LocalDate toDate = LocalDate.of(2005, 1, 27);
+
+        when(userService.searchByBirthRange(fromDate, toDate)).thenThrow(new ApiErrorException(HttpStatus.BAD_REQUEST,
+                "Date range is incorrect"));
+        this.mockMvc.perform(get(RESOURCE_ENDPOINT)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("fromDate", fromDate.toString())
+                        .param("toDate", toDate.toString()))
+                        .andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.data.message").value(containsString("Date range is incorrect")));
+    }
+
+
 }

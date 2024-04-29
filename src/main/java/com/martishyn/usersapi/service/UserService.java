@@ -13,7 +13,7 @@ public interface UserService {
 
     ResponseUserDto updateUser(Long idFromRequest, UserDto userDto);
 
-    ResponseUserDto patchUser(Long id, PatchBodyWrapper patchBodyWrapper);
+    ResponseUserDto patchUser(Long id, UserDto userDto);
 
     boolean deleteUser(Long id);
 

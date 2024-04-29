@@ -1,5 +1,7 @@
 package com.martishyn.usersapi.dto.user;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.martishyn.usersapi.validation.Age;
 import jakarta.validation.constraints.*;
 import lombok.Builder;
@@ -13,7 +15,7 @@ public class UserDto {
     @Null(groups = Create.class)
     @NotNull(groups = Update.class)
     private Long id;
-    @Email(groups = {Create.class, Update.class})
+    @Email(groups = {Create.class, Update.class}, regexp = "^\\s*(.+)@(.+)\\.(.+)\\s*$")
     private String email;
     @NotBlank(groups = {Create.class, Update.class})
     private String firstName;

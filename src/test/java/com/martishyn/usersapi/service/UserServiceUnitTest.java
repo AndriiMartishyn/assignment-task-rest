@@ -1,23 +1,15 @@
-package com.martishyn.usersapi.service.impl;
+package com.martishyn.usersapi.service;
 
 import com.martishyn.usersapi.dao.UserDao;
-import com.martishyn.usersapi.dao.impl.InMemoryUserDao;
 import com.martishyn.usersapi.domain.User;
 import com.martishyn.usersapi.dto.user.PatchBodyWrapper;
 import com.martishyn.usersapi.dto.user.ResponseUserDto;
 import com.martishyn.usersapi.dto.user.UserDto;
 import com.martishyn.usersapi.exception.ApiErrorException;
-import com.martishyn.usersapi.service.UserMapper;
-import com.martishyn.usersapi.service.UserService;
 import com.martishyn.usersapi.service.impl.DefaultUserService;
-import com.martishyn.usersapi.service.impl.UserMapperService;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
@@ -26,7 +18,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -138,7 +129,6 @@ public class UserServiceUnitTest {
         List<ResponseUserDto> responseUserDtos = userService.searchByBirthRange(fromDate, toDate);
         assertTrue(responseUserDtos.isEmpty());
     }
-
 
 
 }

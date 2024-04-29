@@ -1,5 +1,8 @@
 package com.martishyn.usersapi.domain;
 
+import com.martishyn.usersapi.dto.user.Create;
+import com.martishyn.usersapi.dto.user.Update;
+import com.martishyn.usersapi.validation.Age;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -22,9 +25,10 @@ public class User {
     private String firstName;
     @NotBlank
     private String lastName;
-    @Email
+    @Email(regexp = "^\\s*(.+)@(.+)\\.(.+)\\s*$")
     private String email;
     @Past
+    @Age
     @NotNull
     private LocalDate birthDate;
     private String address;

@@ -6,9 +6,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Builder;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
-@JsonRootName(value = "data")
 @Builder
+@JsonRootName("data")
 public class ResponseUserDto {
     private Long id;
     private String email;
@@ -84,6 +85,19 @@ public class ResponseUserDto {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ResponseUserDto that = (ResponseUserDto) o;
+        return Objects.equals(id, that.id) && Objects.equals(email, that.email) && Objects.equals(firstName, that.firstName) && Objects.equals(lastName, that.lastName) && Objects.equals(birthDate, that.birthDate) && Objects.equals(address, that.address) && Objects.equals(phoneNumber, that.phoneNumber);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, email, firstName, lastName, birthDate, address, phoneNumber);
     }
 }
 

@@ -2,25 +2,30 @@ package com.martishyn.usersapi.exception;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
+import jakarta.validation.Configuration;
+import jakarta.validation.ConstraintViolation;
+import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
+@JsonRootName(value = "data")
 public class ApiErrorDto {
     private HttpStatus httpStatus;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
     private LocalDateTime timestamp;
     private String message;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String debugMessage;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<ApiSubErrorDto> subErrors;
 
-    private ApiErrorDto(){
+    private ApiErrorDto() {
         this.timestamp = LocalDateTime.now();
     }
 
@@ -37,15 +42,36 @@ public class ApiErrorDto {
         this.debugMessage = ex.getLocalizedMessage();
     }
 
-    public void addValidationErrors(List<FieldError> fieldErrors) {
-        if (subErrors == null){
+    public void addSubError(ApiSubErrorDto apiSubErrorDto) {
+        if (subErrors == null) {
             subErrors = new ArrayList<>();
         }
-        fieldErrors.forEach(this::createSubErrorFrom);
+        subErrors.add(apiSubErrorDto);
     }
 
-    private void createSubErrorFrom(FieldError fieldError) {
-        subErrors.add(new ApiSubErrorDto(fieldError.getObjectName(),fieldError.getField(), fieldError.getDefaultMessage()));
+    public void addValidationErrors(List<FieldError> fieldErrors) {
+        fieldErrors.stream()
+                .map(this::creaseSubErrorFromFieldError)
+                .forEach(this::addSubError);
+    }
+
+    private ApiSubErrorDto creaseSubErrorFromFieldError(FieldError fieldError) {
+        return new ApiSubErrorDto(fieldError.getField(), fieldError.getRejectedValue(), fieldError.getDefaultMessage());
+    }
+
+    public void addValidationErrors(Set<ConstraintViolation<?>> constraintViolations) {
+        constraintViolations.stream()
+                .map(this::creaseSubErrorFromViolation)
+                .forEach(this::addSubError);
+    }
+
+    private ApiSubErrorDto creaseSubErrorFromViolation(ConstraintViolation<?> violation) {
+        return new ApiSubErrorDto(((PathImpl) violation.getPropertyPath()).getLeafNode().asString(),
+                violation.getInvalidValue(), violation.getMessage());
+    }
+
+    private void addValidationError(String string, Object invalidValue, String message) {
+        subErrors.add(new ApiSubErrorDto(string, invalidValue, message));
     }
 
     public HttpStatus getHttpStatus() {
@@ -83,4 +109,6 @@ public class ApiErrorDto {
     public void setSubErrors(List<ApiSubErrorDto> subErrors) {
         this.subErrors = subErrors;
     }
+
+
 }
