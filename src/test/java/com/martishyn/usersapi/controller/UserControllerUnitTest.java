@@ -25,8 +25,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 public class UserControllerUnitTest {
-    private static final String RESOURCE_ENDPOINT = "/users";
 
+    private static final String RESOURCE_ENDPOINT = "/users";
+    private static final User validUser;
+    private static final User invalidUser;
+    private static final UserDto validCreateDto;
+    private static final UserDto invalidCreateDto;
+    private static final UserDto validUpdateDto;
+    private static final UserDto invalidUpdateDto;
+    private static final ResponseUserDto responseDto;
+    private static final UserDto patchUserDto;
     @Autowired
     private MockMvc mockMvc;
 
@@ -36,18 +44,23 @@ public class UserControllerUnitTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private final User validUser = new User(11L, "Andrii", "Martishyn", "myemail@gmail.com", LocalDate.of(1995, 1, 29), "zelena", "991199");
-    private final User invalidUser = new User(null, "", "", "q11", LocalDate.now().plusDays(1), "", "");
-    private final UserDto validCreateDto = new UserDto("test@gmail.com", "andrii", "martishyn", LocalDate.of(1995, 1, 29), "", "");
-    private final UserDto invalidCreateDto = new UserDto("", "", "", LocalDate.now().plusDays(1), "", "");
-    private final UserDto validUpdateDto = new UserDto(11L, "test@gmail.com", "Andrii", "Mart", LocalDate.of(1997, 1, 1), "", "");
-    private final UserDto invalidUpdateDto = new UserDto(null, "123311", "", "", LocalDate.of(1997, 1, 1), "", "");
-    private final ResponseUserDto responseDto = new ResponseUserDto(11L, "myemail@gmail.com", "Andrii", "Martishyn", LocalDate.of(1995, 1, 29), "zelena", "991199");
-    private final UserDto patchUserDto = UserDto.builder().firstName("Andrii").build();
+    static {
+        validUser = new User(11L, "Andrii", "Martishyn", "myemail@gmail.com", LocalDate.of(1995, 1, 29), "zelena", "991199");
+        invalidUser = new User(null, "", "", "q11", LocalDate.now().plusDays(1), "", "");
+        validCreateDto = new UserDto("test@gmail.com", "andrii", "martishyn", LocalDate.of(1995, 1, 29), "", "");
+        invalidCreateDto = new UserDto("", "", "", LocalDate.now().plusDays(1), "", "");
+        validUpdateDto = new UserDto(11L, "test@gmail.com", "Andrii", "Mart", LocalDate.of(1997, 1, 1), "", "");
+        invalidUpdateDto = new UserDto(null, "123311", "", "", LocalDate.of(1997, 1, 1), "", "");
+        responseDto = new ResponseUserDto(11L, "myemail@gmail.com", "Andrii", "Martishyn", LocalDate.of(1995, 1, 29), "zelena", "991199");
+        patchUserDto = UserDto.builder()
+                .firstName("Andrii")
+                .build();
+    }
 
     @Test
     public void shouldReturnCreatedWithLocationWhenCreate_WithValidInput() throws Exception {
         when(userService.createNewUser(validCreateDto)).thenReturn(responseDto);
+
         this.mockMvc.perform(post(RESOURCE_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validCreateDto)))
@@ -79,6 +92,7 @@ public class UserControllerUnitTest {
     public void shouldReturnOKWhenUpdate_WithValidInput() throws Exception {
         ResponseUserDto responseUser = ResponseUserDto.builder().id(12L).firstName("updatedFN").lastName("updatedLN").build();
         when(userService.updateUser(5L, validUpdateDto)).thenReturn(responseUser);
+
         this.mockMvc.perform(put(RESOURCE_ENDPOINT + "/{id}", 5L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validUpdateDto)))
@@ -111,6 +125,7 @@ public class UserControllerUnitTest {
     public void shouldReturnOKWhenPartialUpdate_WithValidInput() throws Exception {
         Long requestId = 5L;
         when(userService.patchUser(requestId, patchUserDto)).thenReturn(responseDto);
+
         this.mockMvc.perform(patch(RESOURCE_ENDPOINT + "/{id}", requestId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(patchUserDto)))
@@ -160,8 +175,7 @@ public class UserControllerUnitTest {
         LocalDate fromDate = LocalDate.of(2005, 1, 28);
         LocalDate toDate = LocalDate.of(2005, 1, 27);
 
-        when(userService.searchByBirthRange(fromDate, toDate)).thenReturn(List.of(responseDto, responseDto,
-                responseDto, responseDto));
+        when(userService.searchByBirthRange(fromDate, toDate)).thenReturn(List.of(responseDto, responseDto, responseDto, responseDto));
         this.mockMvc.perform(get(RESOURCE_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("fromDate", fromDate.toString())

@@ -6,7 +6,6 @@ import com.martishyn.usersapi.dto.user.UserDto;
 import com.martishyn.usersapi.service.UserMapper;
 import org.springframework.stereotype.Service;
 
-
 @Service
 public class UserMapperService implements UserMapper {
 
