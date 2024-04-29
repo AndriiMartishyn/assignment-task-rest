@@ -1,7 +1,5 @@
 package com.martishyn.usersapi.domain;
 
-import com.martishyn.usersapi.dto.user.Create;
-import com.martishyn.usersapi.dto.user.Update;
 import com.martishyn.usersapi.validation.Age;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

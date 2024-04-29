@@ -2,6 +2,8 @@ package com.martishyn.usersapi.controller;
 
 import com.martishyn.usersapi.dto.user.*;
 import com.martishyn.usersapi.service.UserService;
+import com.martishyn.usersapi.validation.Create;
+import com.martishyn.usersapi.validation.Update;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -15,13 +17,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 public class UserController {
+
     private final UserService userService;
 
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
-    @PostMapping("")
+    @PostMapping()
     public ResponseEntity<?> registerUser(@RequestBody @Validated(Create.class) UserDto userDto,
                                           UriComponentsBuilder uriComponentsBuilder) {
         ResponseUserDto newUser = userService.createNewUser(userDto);
@@ -57,7 +60,7 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<ListDataResponseWrapper> getAllByBirthDateRange(@RequestParam("fromDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-                                                                          @RequestParam("toDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)  LocalDate toDate) {
+                                                                          @RequestParam("toDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
         List<ResponseUserDto> responseUsers = userService.searchByBirthRange(fromDate, toDate);
         return ResponseEntity.ok(new ListDataResponseWrapper(responseUsers));
     }

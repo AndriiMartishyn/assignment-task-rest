@@ -13,8 +13,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Repository
 public class InMemoryUserDao implements UserDao {
+
     private final Map<Long, User> userMap = new HashMap<>();
     private final AtomicLong atomicInteger = new AtomicLong(1L);
+
 
     @Override
     public User save(User entity) {

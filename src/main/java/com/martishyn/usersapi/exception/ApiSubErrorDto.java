@@ -1,8 +1,11 @@
 package com.martishyn.usersapi.exception;
 
 public class ApiSubErrorDto {
+
     private String field;
+
     private Object rejectedValue;
+
     private String message;
 
     public ApiSubErrorDto(String field, Object rejectedValue, String message) {

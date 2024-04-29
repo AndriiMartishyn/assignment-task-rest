@@ -12,8 +12,8 @@ import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class UserMapperServiceUnitTest {
-    private final UserMapper userMapper = new UserMapperService();
 
+    private final UserMapper userMapper = new UserMapperService();
 
     @Test
     public void shouldConvertEntityToDtoAndViceVersa() {
