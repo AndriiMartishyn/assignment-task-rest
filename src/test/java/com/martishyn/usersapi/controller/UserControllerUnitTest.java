@@ -2,7 +2,9 @@ package com.martishyn.usersapi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.martishyn.usersapi.domain.User;
-import com.martishyn.usersapi.dto.user.*;
+import com.martishyn.usersapi.dto.user.PatchBodyWrapper;
+import com.martishyn.usersapi.dto.user.ResponseUserDto;
+import com.martishyn.usersapi.dto.user.UserDto;
 import com.martishyn.usersapi.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -11,12 +13,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -45,11 +43,11 @@ public class UserControllerUnitTest {
     private final UserDto validUpdateDto = new UserDto(11L, "test@gmail.com", "Andrii", "Mart", LocalDate.of(1997, 1, 1), "", "");
     private final UserDto invalidUpdateDto = new UserDto(null, "123311", "", "", LocalDate.of(1997, 1, 1), "", "");
     private final ResponseUserDto responseDto = new ResponseUserDto(11L, "myemail@gmail.com", "Andrii", "Martishyn", LocalDate.of(1995, 1, 29), "zelena", "991199");
-    private final Map<String, Object> patchRequest = new HashMap<>();
     private final PatchBodyWrapper patchBodyWrapper = new PatchBodyWrapper();
+
     @Test
     public void shouldReturnCreatedWithLocationWhenCreate_WithValidInput() throws Exception {
-        when(userService.createNewUser(any())).thenReturn(validUser);
+        when(userService.createNewUser(any())).thenReturn(responseDto);
         this.mockMvc.perform(post(RESOURCE_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validCreateDto)))

@@ -3,14 +3,15 @@ package com.martishyn.usersapi.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.martishyn.usersapi.dao.UserDao;
 import com.martishyn.usersapi.domain.User;
-import com.martishyn.usersapi.dto.user.*;
+import com.martishyn.usersapi.dto.user.PatchBodyWrapper;
+import com.martishyn.usersapi.dto.user.ResponseUserDto;
+import com.martishyn.usersapi.dto.user.UserDto;
 import com.martishyn.usersapi.exception.ApiErrorException;
 import com.martishyn.usersapi.service.UserService;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
@@ -26,16 +27,15 @@ import java.util.stream.Collectors;
 @Service
 public class DefaultUserService implements UserService {
     private final UserDao userDao;
-    @Value("${validation.legit.age}")
-    private int legitAge;
 
     public DefaultUserService(UserDao userDao) {
         this.userDao = userDao;
     }
 
     @Override
-    public User createNewUser(UserDto userDto) {
-        return userDao.save(mapToEntity(userDto));
+    public ResponseUserDto createNewUser(UserDto userDto) {
+        User newUser = userDao.save(mapToEntity(userDto));
+        return mapUserToResponseDto(newUser);
     }
 
     @Override
@@ -65,7 +65,6 @@ public class DefaultUserService implements UserService {
         Optional<User> userFromDb = userDao.findById(idFromRequest);
         User patchedUser = userFromDb.map(user -> PatchAndValidateEntity(data.getPatchBody(), user))
                 .orElseThrow(() -> new ApiErrorException(HttpStatus.NOT_FOUND, "No such user found with id " + idFromRequest));
-
         User savedUser = userDao.save(patchedUser);
         return mapUserToResponseDto(savedUser);
     }
@@ -79,7 +78,7 @@ public class DefaultUserService implements UserService {
 
     @Override
     public List<ResponseUserDto> searchByBirthRange(LocalDate fromDate, LocalDate toDate) {
-        if (fromDate.isAfter(toDate)){
+        if (fromDate.isAfter(toDate)) {
             throw new ApiErrorException(HttpStatus.BAD_REQUEST, "Date range is incorrect");
         }
         List<User> allByDateRange = userDao.getAllByDateRange(fromDate, toDate);

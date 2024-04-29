@@ -25,12 +25,12 @@ public class UserController {
     @PostMapping
     public ResponseEntity<?> registerUser(@RequestBody @Validated(Create.class) UserDto userDto,
                                           UriComponentsBuilder uriComponentsBuilder) {
-        User newUser = userService.createNewUser(userDto);
+        ResponseUserDto newUser = userService.createNewUser(userDto);
         URI location = uriComponentsBuilder
                 .path("/users/{id}")
                 .buildAndExpand(newUser.getId())
                 .toUri();
-        return ResponseEntity.created(location).build();
+        return ResponseEntity.created(location).body(newUser);
     }
 
     @PutMapping("/{id}")

@@ -9,7 +9,7 @@ import java.util.Map;
 
 public interface UserService {
 
-    User createNewUser(UserDto userDto);
+    ResponseUserDto createNewUser(UserDto userDto);
 
     ResponseUserDto updateUser(Long idFromRequest, UserDto userDto);
 
