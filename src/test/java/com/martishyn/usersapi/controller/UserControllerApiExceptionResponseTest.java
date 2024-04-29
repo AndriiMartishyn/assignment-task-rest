@@ -22,7 +22,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(UserController.class)
 public class UserControllerApiExceptionResponseTest {
+
     private static final String RESOURCE_ENDPOINT = "/users";
+    private static final UserDto validUpdateDto;
 
     @Autowired
     private MockMvc mockMvc;
@@ -33,13 +35,15 @@ public class UserControllerApiExceptionResponseTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private final UserDto validUpdateDto = new UserDto(11L, "test@gmail.com", "Andrii", "Mart", LocalDate.of(1997, 1, 1), "", "");
+    static {
+        validUpdateDto = new UserDto(11L, "test@gmail.com", "Andrii", "Mart", LocalDate.of(1997, 1, 1), "", "");
+    }
 
     @Test
     public void shouldReturnBadResponseWhenUpdate_WithNotFoundUser() throws Exception {
         long requestId = 5L;
-        when(userService.updateUser(requestId, validUpdateDto)).thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND,
-                "No such user found with id " + requestId));
+        when(userService.updateUser(requestId, validUpdateDto))
+                .thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND, "No such user found with id " + requestId));
         this.mockMvc.perform(put(RESOURCE_ENDPOINT + "/{id}", requestId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validUpdateDto)))
@@ -52,8 +56,8 @@ public class UserControllerApiExceptionResponseTest {
     @Test
     public void shouldReturnBadResponseWhenUpdate_WithDifferentId() throws Exception {
         long requestId = 5L;
-        when(userService.updateUser(requestId, validUpdateDto)).thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND,
-                "Id mismatch between request body and path variable"));
+        when(userService.updateUser(requestId, validUpdateDto))
+                .thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND, "Id mismatch between request body and path variable"));
         this.mockMvc.perform(put(RESOURCE_ENDPOINT + "/{id}", requestId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validUpdateDto)))
@@ -66,8 +70,8 @@ public class UserControllerApiExceptionResponseTest {
     @Test
     public void shouldReturnBadResponseWhenUpdatePartially_WithNotFoundUser() throws Exception {
         long requestId = 0;
-        when(userService.patchUser(requestId, validUpdateDto)).thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND,
-                "Wrong provided id or data is empty"));
+        when(userService.patchUser(requestId, validUpdateDto))
+                .thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND, "Wrong provided id or data is empty"));
         this.mockMvc.perform(patch(RESOURCE_ENDPOINT + "/{id}", requestId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validUpdateDto)))
@@ -78,8 +82,8 @@ public class UserControllerApiExceptionResponseTest {
     @Test
     public void shouldReturnBadResponseWhenUpdatePartially_WithDifferentId() throws Exception {
         long requestId = 0;
-        when(userService.patchUser(requestId, new UserDto())).thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND,
-                "Wrong provided id or data is empty"));
+        when(userService.patchUser(requestId, new UserDto()))
+                .thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND, "Wrong provided id or data is empty"));
         this.mockMvc.perform(patch(RESOURCE_ENDPOINT + "/{id}", requestId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new UserDto())))
@@ -92,8 +96,8 @@ public class UserControllerApiExceptionResponseTest {
         LocalDate fromDate = LocalDate.of(2005, 1, 28);
         LocalDate toDate = LocalDate.of(2005, 1, 27);
 
-        when(userService.searchByBirthRange(fromDate, toDate)).thenThrow(new ApiErrorException(HttpStatus.BAD_REQUEST,
-                "Date range is incorrect"));
+        when(userService.searchByBirthRange(fromDate, toDate))
+                .thenThrow(new ApiErrorException(HttpStatus.BAD_REQUEST, "Date range is incorrect"));
         this.mockMvc.perform(get(RESOURCE_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("fromDate", fromDate.toString())

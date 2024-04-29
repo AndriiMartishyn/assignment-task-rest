@@ -11,13 +11,20 @@ import java.util.Objects;
 @Builder
 @JsonRootName("data")
 public class ResponseUserDto {
+
     private Long id;
+
     private String email;
+
     private String firstName;
+
     private String lastName;
+
     private LocalDate birthDate;
+
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String address;
+
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String phoneNumber;
 

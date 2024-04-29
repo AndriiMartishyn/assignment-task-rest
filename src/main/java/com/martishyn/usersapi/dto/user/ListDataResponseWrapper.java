@@ -3,6 +3,7 @@ package com.martishyn.usersapi.dto.user;
 import java.util.List;
 
 public class ListDataResponseWrapper {
+
     private List<ResponseUserDto> data;
 
     public ListDataResponseWrapper(List<ResponseUserDto> responseList) {

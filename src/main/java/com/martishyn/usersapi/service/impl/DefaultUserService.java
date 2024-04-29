@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 
 @Service
 public class DefaultUserService implements UserService {
+
     private final UserDao userDao;
     private final UserMapper userMapper;
 
@@ -85,9 +86,6 @@ public class DefaultUserService implements UserService {
             throw new ApiErrorException(HttpStatus.BAD_REQUEST, "Date range is incorrect");
         }
         List<User> allByDateRange = userDao.getAllByDateRange(fromDate, toDate);
-        if (allByDateRange.isEmpty()) {
-            return Collections.emptyList();
-        }
         return allByDateRange.stream()
                 .map(userMapper::convertEntityToResponseDto)
                 .collect(Collectors.toList());

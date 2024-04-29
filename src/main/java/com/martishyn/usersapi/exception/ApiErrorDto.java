@@ -3,7 +3,6 @@ package com.martishyn.usersapi.exception;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonRootName;
-import jakarta.validation.Configuration;
 import jakarta.validation.ConstraintViolation;
 import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.springframework.http.HttpStatus;
@@ -16,12 +15,17 @@ import java.util.Set;
 
 @JsonRootName(value = "data")
 public class ApiErrorDto {
+
     private HttpStatus httpStatus;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
     private LocalDateTime timestamp;
+
     private String message;
+
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String debugMessage;
+
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<ApiSubErrorDto> subErrors;
 
