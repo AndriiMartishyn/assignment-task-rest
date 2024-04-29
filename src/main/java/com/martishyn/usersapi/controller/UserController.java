@@ -4,6 +4,7 @@ import com.martishyn.usersapi.dto.user.*;
 import com.martishyn.usersapi.service.UserService;
 import com.martishyn.usersapi.validation.Create;
 import com.martishyn.usersapi.validation.Update;
+import jakarta.validation.constraints.Min;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -50,7 +51,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable @Min(1) Long id) {
         boolean isDeleted = userService.deleteUser(id);
         if (isDeleted) {
             return ResponseEntity.noContent().build();
