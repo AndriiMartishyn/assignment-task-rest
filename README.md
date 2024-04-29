@@ -27,3 +27,19 @@ Project main points:
 - Controller tested for basic workflow with mocking userService
 - UserService partially tested with mocking dao and modelMapper
 
+
+
+### Setting up Dev
+
+First you need to pull the latest code
+
+```shell
+git clone https://github.com/AndriiMartishyn/assignment-task-rest.git
+cd assignment-task-rest/
+```
+Execute following commands to build docker image and run project
+
+```shell
+docker build -t springboot_rest_api:v1 .
+docker run -p 8080:80 springboot_rest_api:v1
+```
