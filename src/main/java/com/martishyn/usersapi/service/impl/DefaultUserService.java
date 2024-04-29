@@ -55,7 +55,7 @@ public class DefaultUserService implements UserService {
         user.setLastName(userDto.getLastName());
         user.setEmail(userDto.getEmail());
         user.setBirthDate(userDto.getBirthDate());
-        user.setPhoneNumber(user.getPhoneNumber());
+        user.setPhoneNumber(userDto.getPhoneNumber());
         user.setAddress(userDto.getAddress());
         return user;
     }
