@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.martishyn.usersapi.domain.User;
 import com.martishyn.usersapi.dto.user.ResponseUserDto;
 import com.martishyn.usersapi.dto.user.UserDto;
+import com.martishyn.usersapi.exception.ApiErrorException;
 import com.martishyn.usersapi.service.UserService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -141,6 +143,15 @@ public class UserControllerUnitTest {
                 .andExpect(jsonPath("$.data.phoneNumber").value(containsString("991199")));
 
         verify(userService, times(1)).patchUser(PATHVARIABLE_CONSTANT, patchUserDto);
+    }
+
+    @Test
+    public void shouldReturnBadResponseWhenUpdatePartiallyWithEmptyBody() throws Exception {
+        this.mockMvc.perform(patch(RESOURCE_ENDPOINT + "/{id}", PATHVARIABLE_CONSTANT)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(null)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(containsString("Malformed JSON request")));
     }
 
     @Test

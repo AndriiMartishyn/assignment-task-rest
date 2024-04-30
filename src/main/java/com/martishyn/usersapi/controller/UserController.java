@@ -38,14 +38,14 @@ public class UserController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@RequestBody @Validated(Update.class) UserDto userDto,
-                                        @PathVariable Long id) {
+                                        @PathVariable @Min(1) Long id) {
         ResponseUserDto updatedUser = userService.updateUser(id, userDto);
         return ResponseEntity.ok(new SingleDataResponseWrapper(updatedUser));
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<?> updateUserPartially(@RequestBody UserDto userDto,
-                                                 @PathVariable Long id) {
+                                                 @PathVariable @Min(1) Long id) {
         ResponseUserDto updatedUser = userService.patchUser(id, userDto);
         return ResponseEntity.ok().body(new SingleDataResponseWrapper(updatedUser));
     }

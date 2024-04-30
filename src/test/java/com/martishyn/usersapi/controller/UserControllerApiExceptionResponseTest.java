@@ -24,6 +24,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class UserControllerApiExceptionResponseTest {
 
     private static final String RESOURCE_ENDPOINT = "/users";
+
+    private static final long PATHVARIABLE_ID = 5L;
+
     private static final UserDto validUpdateDto;
 
     @Autowired
@@ -36,59 +39,54 @@ public class UserControllerApiExceptionResponseTest {
     private ObjectMapper objectMapper;
 
     static {
-        validUpdateDto = new UserDto(11L, "test@gmail.com", "Andrii", "Mart", LocalDate.of(1997, 1, 1), "", "");
+        validUpdateDto = UserDto.builder()
+                .id(11L)
+                .firstName("Andrii")
+                .lastName("Mart")
+                .email("test@gmail.com")
+                .birthDate(LocalDate.of(1997, 1, 1))
+                .phoneNumber("")
+                .address("").build();
     }
 
     @Test
     public void shouldReturnBadResponseWhenUpdate_WithNotFoundUser() throws Exception {
-        long requestId = 5L;
-        when(userService.updateUser(requestId, validUpdateDto))
-                .thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND, "No such user found with id " + requestId));
-        this.mockMvc.perform(put(RESOURCE_ENDPOINT + "/{id}", requestId)
+        when(userService.updateUser(PATHVARIABLE_ID, validUpdateDto))
+                .thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND, "No such user found with id " + PATHVARIABLE_ID));
+
+        this.mockMvc.perform(put(RESOURCE_ENDPOINT + "/{id}", PATHVARIABLE_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validUpdateDto)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value(containsString("No such user found with id " + requestId)));
+                .andExpect(jsonPath("$.message").value(containsString("No such user found with id " + PATHVARIABLE_ID)));
 
-        verify(userService, times(1)).updateUser(requestId, validUpdateDto);
+        verify(userService, times(1)).updateUser(PATHVARIABLE_ID, validUpdateDto);
     }
 
     @Test
     public void shouldReturnBadResponseWhenUpdate_WithDifferentId() throws Exception {
-        long requestId = 5L;
-        when(userService.updateUser(requestId, validUpdateDto))
+        when(userService.updateUser(PATHVARIABLE_ID, validUpdateDto))
                 .thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND, "Id mismatch between request body and path variable"));
-        this.mockMvc.perform(put(RESOURCE_ENDPOINT + "/{id}", requestId)
+
+        this.mockMvc.perform(put(RESOURCE_ENDPOINT + "/{id}", PATHVARIABLE_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validUpdateDto)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value(containsString("Id mismatch between request body and path variable")));
 
-        verify(userService, times(1)).updateUser(requestId, validUpdateDto);
+        verify(userService, times(1)).updateUser(PATHVARIABLE_ID, validUpdateDto);
     }
 
     @Test
-    public void shouldReturnBadResponseWhenUpdatePartially_WithNotFoundUser() throws Exception {
-        long requestId = 0;
-        when(userService.patchUser(requestId, validUpdateDto))
-                .thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND, "Wrong provided id or data is empty"));
-        this.mockMvc.perform(patch(RESOURCE_ENDPOINT + "/{id}", requestId)
+    public void shouldReturnBadResponseWhenUpdatePartiallyWithNotFoundUser() throws Exception {
+        when(userService.patchUser(PATHVARIABLE_ID, validUpdateDto))
+                .thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND, "No such user found with id " + PATHVARIABLE_ID));
+
+        this.mockMvc.perform(patch(RESOURCE_ENDPOINT + "/{id}", PATHVARIABLE_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validUpdateDto)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value(containsString("Wrong provided id or data is empty")));
-    }
-
-    @Test
-    public void shouldReturnBadResponseWhenUpdatePartially_WithDifferentId() throws Exception {
-        long requestId = 0;
-        when(userService.patchUser(requestId, new UserDto()))
-                .thenThrow(new ApiErrorException(HttpStatus.NOT_FOUND, "Wrong provided id or data is empty"));
-        this.mockMvc.perform(patch(RESOURCE_ENDPOINT + "/{id}", requestId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new UserDto())))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value(containsString("Wrong provided id or data is empty")));
+                .andExpect(jsonPath("$.message").value(containsString("No such user found with id " + PATHVARIABLE_ID)));
     }
 
     @Test
