@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.beans.FeatureDescriptor;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -27,7 +28,8 @@ public class DefaultPatchValidationService implements PatchValidationService {
         BeanWrapper wrappedSource = new BeanWrapperImpl(source);
         String[] nullValues = Stream.of(wrappedSource.getPropertyDescriptors())
                 .map(FeatureDescriptor::getName)
-                .filter(propertyName -> ObjectUtils.isEmpty(wrappedSource.getPropertyValue(propertyName)))
+                .filter(propertyName -> ObjectUtils.isEmpty(wrappedSource.getPropertyValue(propertyName)) ||
+                                                wrappedSource.getPropertyValue(propertyName) == null)
                 .toArray(String[]::new);
         BeanUtils.copyProperties(source, target, nullValues);
         return target;
