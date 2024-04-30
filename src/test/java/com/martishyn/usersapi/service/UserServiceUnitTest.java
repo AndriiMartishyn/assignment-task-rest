@@ -3,13 +3,14 @@ package com.martishyn.usersapi.service;
 import com.martishyn.usersapi.dao.UserDao;
 import com.martishyn.usersapi.domain.User;
 import com.martishyn.usersapi.dto.user.ResponseUserDto;
-import com.martishyn.usersapi.dto.user.SingleDataResponseWrapper;
 import com.martishyn.usersapi.dto.user.UserDto;
 import com.martishyn.usersapi.exception.ApiErrorException;
 import com.martishyn.usersapi.service.impl.DefaultUserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
@@ -22,20 +23,34 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceUnitTest {
-    private UserDao userDao;
-    private UserMapper userMapper;
-    private UserService userService;
-    private User user;
-    private UserDto userDto;
-    private ResponseUserDto responseDto;
+    private static final long USER_LOOKUP_ID = 11L;
 
-    @BeforeEach
-    public void setUp() {
+    private static UserDao userDao;
+
+    private static UserMapper userMapper;
+
+    private static UserService userService;
+
+    private static PatchValidationService patchValidationService;
+
+    private static User user;
+
+    private static UserDto userDto;
+
+    private static UserDto updateUserDto;
+
+
+    private static ResponseUserDto responseDto;
+
+    @BeforeAll
+    public static void setUp(){
         userDao = mock(UserDao.class);
         userMapper = mock(UserMapper.class);
-        userService = new DefaultUserService(userDao, userMapper);
+        patchValidationService = mock(PatchValidationService.class);
+        userService = new DefaultUserService(userDao, userMapper, patchValidationService);
         user = new User(11L, "Andrii", "Martishyn", "test@gmail.com", LocalDate.of(1995, 1, 29), "zelena", "991199");
         userDto = new UserDto("test@gmail.com", "Andrii", "Martishyn", LocalDate.of(1995, 1, 29), "zelena", "991199");
+        updateUserDto = new UserDto(11L, "test@gmail.com", "Andrii", "Martishyn", LocalDate.of(1995, 1, 29), "zelena", "991199");
         responseDto = new ResponseUserDto(11L, "test@gmail.com", "Andrii", "Martishyn", LocalDate.of(1995, 1, 29), "zelena", "991199");
     }
 
@@ -52,6 +67,8 @@ public class UserServiceUnitTest {
         assertEquals("Martishyn", newUser.getLastName());
         assertEquals("test@gmail.com", newUser.getEmail());
         assertEquals(LocalDate.of(1995, 1, 29), newUser.getBirthDate());
+        assertEquals("zelena", newUser.getAddress());
+        assertEquals("991199", newUser.getPhoneNumber());
     }
 
     @Test
@@ -71,6 +88,25 @@ public class UserServiceUnitTest {
     }
 
     @Test
+    public void shouldReturnResponseDtoWhenUpdatingUser() {
+        when(userDao.findById(USER_LOOKUP_ID)).thenReturn(Optional.of(user));
+        when(userMapper.populateEntityFromDto(any(), any())).thenReturn(user);
+        when(userDao.save(user)).thenReturn(user);
+        when(userMapper.convertEntityToResponseDto(any())).thenReturn(responseDto);
+
+        userService.updateUser(USER_LOOKUP_ID, updateUserDto);
+        ResponseUserDto newUser = userService.createNewUser(userDto);
+        assertNotNull(newUser);
+        assertEquals(11L, newUser.getId());
+        assertEquals("Andrii", newUser.getFirstName());
+        assertEquals("Martishyn", newUser.getLastName());
+        assertEquals("test@gmail.com", newUser.getEmail());
+        assertEquals(LocalDate.of(1995, 1, 29), newUser.getBirthDate());
+        assertEquals("zelena", newUser.getAddress());
+        assertEquals("991199", newUser.getPhoneNumber());
+    }
+
+    @Test
     public void shouldThrowExceptionWhilePatchWhenWrongId() {
         assertThrows(ApiErrorException.class, () -> userService.patchUser(2L, null),
                 "Wrong provided id or data is empty");
@@ -87,6 +123,25 @@ public class UserServiceUnitTest {
         long id = 2L;
         assertThrows(ApiErrorException.class, () -> userService.patchUser(id, null),
                 "No such user found with id " + id);
+    }
+
+    @Test
+    public void shouldReturnResponseDtoWhenPatchingUser() {
+        when(userDao.findById(USER_LOOKUP_ID)).thenReturn(Optional.of(user));
+        when(patchValidationService.patchUserFromDto(updateUserDto, user)).thenReturn(user);
+        doNothing().when(patchValidationService).validateEntity(any());
+        when(userDao.save(user)).thenReturn(user);
+        when(userMapper.convertEntityToResponseDto(any())).thenReturn(responseDto);
+
+        ResponseUserDto newUser = userService.patchUser(USER_LOOKUP_ID, updateUserDto);
+        assertNotNull(newUser);
+        assertEquals(11L, newUser.getId());
+        assertEquals("Andrii", newUser.getFirstName());
+        assertEquals("Martishyn", newUser.getLastName());
+        assertEquals("test@gmail.com", newUser.getEmail());
+        assertEquals(LocalDate.of(1995, 1, 29), newUser.getBirthDate());
+        assertEquals("zelena", newUser.getAddress());
+        assertEquals("991199", newUser.getPhoneNumber());
     }
 
     @Test

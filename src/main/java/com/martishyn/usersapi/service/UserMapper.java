@@ -9,4 +9,6 @@ public interface UserMapper {
     User convertRequestDtoToEntity(UserDto userDto);
 
     ResponseUserDto convertEntityToResponseDto(User User);
+
+    User populateEntityFromDto(User user, UserDto userDto);
 }

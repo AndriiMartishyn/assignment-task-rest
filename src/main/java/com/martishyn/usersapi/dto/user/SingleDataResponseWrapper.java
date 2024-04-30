@@ -1,6 +1,7 @@
 package com.martishyn.usersapi.dto.user;
 
 public class SingleDataResponseWrapper {
+
     private ResponseUserDto data;
 
     public SingleDataResponseWrapper(ResponseUserDto data) {

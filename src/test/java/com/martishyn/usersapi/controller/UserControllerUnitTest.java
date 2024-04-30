@@ -5,6 +5,7 @@ import com.martishyn.usersapi.domain.User;
 import com.martishyn.usersapi.dto.user.ResponseUserDto;
 import com.martishyn.usersapi.dto.user.UserDto;
 import com.martishyn.usersapi.service.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,15 +27,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(UserController.class)
 public class UserControllerUnitTest {
 
-    private static final String RESOURCE_ENDPOINT = "/users";
-    private static final User validUser;
-    private static final User invalidUser;
-    private static final UserDto validCreateDto;
-    private static final UserDto invalidCreateDto;
-    private static final UserDto validUpdateDto;
-    private static final UserDto invalidUpdateDto;
-    private static final ResponseUserDto responseDto;
-    private static final UserDto patchUserDto;
+    private static final long PATHVARIABLE_CONSTANT = 5L;
+    
+    private static  String RESOURCE_ENDPOINT = "/users";
+
+    private static  User validUser;
+
+    private static  User invalidUser;
+
+    private static  UserDto validCreateDto;
+
+    private static  UserDto invalidCreateDto;
+
+    private static  UserDto validUpdateDto;
+
+    private static  UserDto invalidUpdateDto;
+
+    private static  ResponseUserDto responseDto;
+
+    private static  UserDto patchUserDto;
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -44,21 +56,13 @@ public class UserControllerUnitTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    static {
-        validUser = new User(11L, "Andrii", "Martishyn", "myemail@gmail.com", LocalDate.of(1995, 1, 29), "zelena", "991199");
-        invalidUser = new User(null, "", "", "q11", LocalDate.now().plusDays(1), "", "");
-        validCreateDto = new UserDto("test@gmail.com", "andrii", "martishyn", LocalDate.of(1995, 1, 29), "", "");
-        invalidCreateDto = new UserDto("", "", "", LocalDate.now().plusDays(1), "", "");
-        validUpdateDto = new UserDto(11L, "test@gmail.com", "Andrii", "Mart", LocalDate.of(1997, 1, 1), "", "");
-        invalidUpdateDto = new UserDto(null, "123311", "", "", LocalDate.of(1997, 1, 1), "", "");
-        responseDto = new ResponseUserDto(11L, "myemail@gmail.com", "Andrii", "Martishyn", LocalDate.of(1995, 1, 29), "zelena", "991199");
-        patchUserDto = UserDto.builder()
-                .firstName("Andrii")
-                .build();
+    @BeforeAll
+    public static void setUp(){
+        createTestData();
     }
 
     @Test
-    public void shouldReturnCreatedWithLocationWhenCreate_WithValidInput() throws Exception {
+    public void shouldReturnCreatedWithLocationWhenCreateWithValidInput() throws Exception {
         when(userService.createNewUser(validCreateDto)).thenReturn(responseDto);
 
         this.mockMvc.perform(post(RESOURCE_ENDPOINT)
@@ -76,7 +80,7 @@ public class UserControllerUnitTest {
     }
 
     @Test
-    public void shouldReturnBadResponseWithDetailsWhenCreate_WithInvalidInput() throws Exception {
+    public void shouldReturnBadResponseWithDetailsWhenCreateWithInvalidInput() throws Exception {
         this.mockMvc.perform(post(RESOURCE_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidCreateDto)))
@@ -89,28 +93,27 @@ public class UserControllerUnitTest {
     }
 
     @Test
-    public void shouldReturnOKWhenUpdate_WithValidInput() throws Exception {
-        ResponseUserDto responseUser = ResponseUserDto.builder().id(12L).firstName("updatedFN").lastName("updatedLN").build();
-        when(userService.updateUser(5L, validUpdateDto)).thenReturn(responseUser);
+    public void shouldReturnOKWhenUpdateWithValidInput() throws Exception {
+        when(userService.updateUser(PATHVARIABLE_CONSTANT, validUpdateDto)).thenReturn(responseDto);
 
-        this.mockMvc.perform(put(RESOURCE_ENDPOINT + "/{id}", 5L)
+        this.mockMvc.perform(put(RESOURCE_ENDPOINT + "/{id}", PATHVARIABLE_CONSTANT)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validUpdateDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(12))
-                .andExpect(jsonPath("$.data.firstName").value(containsString("updatedFN")))
-                .andExpect(jsonPath("$.data.lastName").value(containsString("updatedLN")));
+                .andExpect(jsonPath("$.data.id").value(11L))
+                .andExpect(jsonPath("$.data.firstName").value(containsString("Andrii")))
+                .andExpect(jsonPath("$.data.lastName").value(containsString("Martishyn")));
 
         ArgumentCaptor<UserDto> userCaptor = ArgumentCaptor.forClass(UserDto.class);
-        verify(userService, times(1)).updateUser(eq(5L), userCaptor.capture());
+        verify(userService, times(1)).updateUser(eq(PATHVARIABLE_CONSTANT), userCaptor.capture());
         assertThat(userCaptor.getValue().getId()).isEqualTo(11);
         assertThat(userCaptor.getValue().getFirstName()).isEqualTo("Andrii");
         assertThat(userCaptor.getValue().getLastName()).isEqualTo("Mart");
     }
 
     @Test
-    public void shouldReturnBadResponseWhenUpdate_WithInvalidInput() throws Exception {
-        this.mockMvc.perform(put(RESOURCE_ENDPOINT + "/{id}", 5L)
+    public void shouldReturnBadResponseWhenUpdateWithInvalidInput() throws Exception {
+        this.mockMvc.perform(put(RESOURCE_ENDPOINT + "/{id}", PATHVARIABLE_CONSTANT)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidUpdateDto)))
                 .andExpect(status().isBadRequest())
@@ -118,15 +121,14 @@ public class UserControllerUnitTest {
                 .andExpect(jsonPath("$.subErrors.length()").value(4));
 
         ArgumentCaptor<UserDto> userCaptor = ArgumentCaptor.forClass(UserDto.class);
-        verify(userService, never()).updateUser(eq(5L), userCaptor.capture());
+        verify(userService, never()).updateUser(eq(PATHVARIABLE_CONSTANT), userCaptor.capture());
     }
 
     @Test
     public void shouldReturnOKWhenPartialUpdate_WithValidInput() throws Exception {
-        Long requestId = 5L;
-        when(userService.patchUser(requestId, patchUserDto)).thenReturn(responseDto);
+        when(userService.patchUser(PATHVARIABLE_CONSTANT, patchUserDto)).thenReturn(responseDto);
 
-        this.mockMvc.perform(patch(RESOURCE_ENDPOINT + "/{id}", requestId)
+        this.mockMvc.perform(patch(RESOURCE_ENDPOINT + "/{id}", PATHVARIABLE_CONSTANT)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(patchUserDto)))
                 .andExpect(status().isOk())
@@ -138,22 +140,22 @@ public class UserControllerUnitTest {
                 .andExpect(jsonPath("$.data.address").value(containsString("zelena")))
                 .andExpect(jsonPath("$.data.phoneNumber").value(containsString("991199")));
 
-        verify(userService, times(1)).patchUser(requestId, patchUserDto);
+        verify(userService, times(1)).patchUser(PATHVARIABLE_CONSTANT, patchUserDto);
     }
 
     @Test
     public void shouldReturnNotFoundResponseWhenEntityNotDeleted() throws Exception {
-        long requestId = 0;
-        when(userService.deleteUser(requestId)).thenReturn(false);
-        this.mockMvc.perform(delete(RESOURCE_ENDPOINT + "/{id}", requestId))
+        when(userService.deleteUser(PATHVARIABLE_CONSTANT)).thenReturn(false);
+
+        this.mockMvc.perform(delete(RESOURCE_ENDPOINT + "/{id}", PATHVARIABLE_CONSTANT))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     public void shouldReturnNoContentResponseWhenEntityDeleted() throws Exception {
-        long requestId = 0;
-        when(userService.deleteUser(requestId)).thenReturn(true);
-        this.mockMvc.perform(delete(RESOURCE_ENDPOINT + "/{id}", requestId))
+        when(userService.deleteUser(PATHVARIABLE_CONSTANT)).thenReturn(true);
+
+        this.mockMvc.perform(delete(RESOURCE_ENDPOINT + "/{id}", PATHVARIABLE_CONSTANT))
                 .andExpect(status().isNoContent());
     }
 
@@ -182,6 +184,19 @@ public class UserControllerUnitTest {
                         .param("toDate", toDate.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.length()").value(4));
+    }
+
+    private static  void createTestData(){
+        validUser = new User(11L, "Andrii", "Martishyn", "myemail@gmail.com", LocalDate.of(1995, 1, 29), "zelena", "991199");
+        invalidUser = new User(null, "", "", "q11", LocalDate.now().plusDays(1), "", "");
+        validCreateDto = new UserDto("test@gmail.com", "andrii", "martishyn", LocalDate.of(1995, 1, 29), "", "");
+        invalidCreateDto = new UserDto("", "", "", LocalDate.now().plusDays(1), "", "");
+        validUpdateDto = new UserDto(11L, "test@gmail.com", "Andrii", "Mart", LocalDate.of(1997, 1, 1), "", "");
+        invalidUpdateDto = new UserDto(null, "123311", "", "", LocalDate.of(1997, 1, 1), "", "");
+        responseDto = new ResponseUserDto(11L, "myemail@gmail.com", "Andrii", "Martishyn", LocalDate.of(1995, 1, 29), "zelena", "991199");
+        patchUserDto = UserDto.builder()
+                .firstName("Andrii")
+                .build();
     }
 
 }
