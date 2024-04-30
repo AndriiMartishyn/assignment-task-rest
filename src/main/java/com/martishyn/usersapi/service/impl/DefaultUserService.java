@@ -5,34 +5,31 @@ import com.martishyn.usersapi.domain.User;
 import com.martishyn.usersapi.dto.user.ResponseUserDto;
 import com.martishyn.usersapi.dto.user.UserDto;
 import com.martishyn.usersapi.exception.ApiErrorException;
+import com.martishyn.usersapi.service.PatchValidationService;
 import com.martishyn.usersapi.service.UserMapper;
 import com.martishyn.usersapi.service.UserService;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import java.beans.FeatureDescriptor;
 
 import java.time.LocalDate;
-import java.util.*;
-import java.util.function.Predicate;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class DefaultUserService implements UserService {
 
     private final UserDao userDao;
+
     private final UserMapper userMapper;
 
-    public DefaultUserService(UserDao userDao, UserMapper userMapper) {
+    private final PatchValidationService patchValidationService;
+
+    public DefaultUserService(UserDao userDao, UserMapper userMapper,
+                              PatchValidationService patchValidationService) {
         this.userDao = userDao;
         this.userMapper = userMapper;
+        this.patchValidationService = patchValidationService;
     }
 
     @Override
@@ -45,21 +42,12 @@ public class DefaultUserService implements UserService {
     public ResponseUserDto updateUser(Long idFromRequest, UserDto userDto) {
         checkForIdMismatch(userDto, idFromRequest);
         User updatedUser = userDao.findById(idFromRequest)
-                .map(user -> populateEntityFromDto(user, userDto))
+                .map(user -> userMapper.populateEntityFromDto(user, userDto))
                 .orElseThrow(() -> new ApiErrorException(HttpStatus.NOT_FOUND, "No such user found with id " + idFromRequest));
         User savedUser = userDao.save(updatedUser);
         return userMapper.convertEntityToResponseDto(savedUser);
     }
 
-    private User populateEntityFromDto(User user, UserDto userDto) {
-        user.setFirstName(userDto.getFirstName());
-        user.setLastName(userDto.getLastName());
-        user.setEmail(userDto.getEmail());
-        user.setBirthDate(userDto.getBirthDate());
-        user.setPhoneNumber(userDto.getPhoneNumber());
-        user.setAddress(userDto.getAddress());
-        return user;
-    }
 
     @Override
     public ResponseUserDto patchUser(Long idFromRequest, UserDto userDto) {
@@ -67,8 +55,11 @@ public class DefaultUserService implements UserService {
             throw new ApiErrorException(HttpStatus.NOT_FOUND, "Wrong provided id or data is empty");
         }
         Optional<User> userFromDb = userDao.findById(idFromRequest);
-        User patchedUser = userFromDb.map(user -> patchAndValidateEntity(userDto, user))
-                .orElseThrow(() -> new ApiErrorException(HttpStatus.NOT_FOUND, "No such user found with id " + idFromRequest));
+        User patchedUser = userFromDb.map(user -> {
+            var patched = patchValidationService.patchUserFromDto(userDto, userFromDb.get());
+            patchValidationService.validateEntity(patched);
+            return patched;
+        }).orElseThrow(() -> new ApiErrorException(HttpStatus.NOT_FOUND, "No such user found with id " + idFromRequest));
         User savedUser = userDao.save(patchedUser);
         return userMapper.convertEntityToResponseDto(savedUser);
     }
@@ -89,26 +80,6 @@ public class DefaultUserService implements UserService {
         return allByDateRange.stream()
                 .map(userMapper::convertEntityToResponseDto)
                 .collect(Collectors.toList());
-    }
-
-    public static User patchAndValidateEntity(UserDto source, User target) {
-        final BeanWrapper wrappedSource = new BeanWrapperImpl(source);
-        String[] nullValues = Stream.of(wrappedSource.getPropertyDescriptors())
-                .map(FeatureDescriptor::getName)
-                .filter(propertyName -> wrappedSource.getPropertyValue(propertyName) == null
-                        || Objects.equals(wrappedSource.getPropertyValue(propertyName), ""))
-                .toArray(String[]::new);
-        BeanUtils.copyProperties(source, target, nullValues);
-        validateUser(target);
-        return target;
-    }
-
-    private static void validateUser(User user) {
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        Set<ConstraintViolation<User>> constraintViolations = validator.validate(user);
-        if (!constraintViolations.isEmpty()) {
-            throw new ConstraintViolationException(constraintViolations);
-        }
     }
 
     private void checkForIdMismatch(UserDto userDto, Long idFromRequest) {

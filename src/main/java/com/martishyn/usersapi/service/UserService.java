@@ -1,11 +1,10 @@
 package com.martishyn.usersapi.service;
 
-import com.martishyn.usersapi.domain.User;
-import com.martishyn.usersapi.dto.user.*;
+import com.martishyn.usersapi.dto.user.ResponseUserDto;
+import com.martishyn.usersapi.dto.user.UserDto;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 public interface UserService {
 

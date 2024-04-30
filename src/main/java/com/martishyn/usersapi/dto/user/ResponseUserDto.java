@@ -2,7 +2,6 @@ package com.martishyn.usersapi.dto.user;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonRootName;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Builder;
 
 import java.time.LocalDate;

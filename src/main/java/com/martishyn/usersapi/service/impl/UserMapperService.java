@@ -32,4 +32,15 @@ public class UserMapperService implements UserMapper {
                 .address(user.getAddress())
                 .phoneNumber(user.getPhoneNumber()).build();
     }
+
+    @Override
+    public User populateEntityFromDto(User user, UserDto userDto) {
+        user.setFirstName(userDto.getFirstName());
+        user.setLastName(userDto.getLastName());
+        user.setEmail(userDto.getEmail());
+        user.setBirthDate(userDto.getBirthDate());
+        user.setPhoneNumber(userDto.getPhoneNumber());
+        user.setAddress(userDto.getAddress());
+        return user;
+    }
 }

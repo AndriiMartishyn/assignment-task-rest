@@ -113,6 +113,4 @@ public class ApiErrorDto {
     public void setSubErrors(List<ApiSubErrorDto> subErrors) {
         this.subErrors = subErrors;
     }
-
-
 }
