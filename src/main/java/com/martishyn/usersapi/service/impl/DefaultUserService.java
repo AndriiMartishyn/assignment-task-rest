@@ -51,9 +51,6 @@ public class DefaultUserService implements UserService {
 
     @Override
     public ResponseUserDto patchUser(Long idFromRequest, UserDto userDto) {
-        if (idFromRequest <= 0 || userDto == null) {
-            throw new ApiErrorException(HttpStatus.NOT_FOUND, "Wrong provided id or data is empty");
-        }
         Optional<User> userFromDb = userDao.findById(idFromRequest);
         User patchedUser = userFromDb.map(user -> {
             var patched = patchValidationService.patchUserFromDto(userDto, userFromDb.get());
