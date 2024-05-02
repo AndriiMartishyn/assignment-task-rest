@@ -52,5 +52,5 @@ Execute following commands to build docker image and run project
 
 ```shell
 docker build -t springboot_rest_api:v1 .
-docker run -p 8080:80 springboot_rest_api:v1
+docker run -p 8080:8080 springboot_rest_api:v1
 ```
